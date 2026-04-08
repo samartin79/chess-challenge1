@@ -1,0 +1,8 @@
+{
+  "name": "vibe-cup-base-challenge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node agent.ts"
+  }
+}
