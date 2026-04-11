@@ -5,7 +5,7 @@
 - **Participant / team name:** samartin79
 - **Final source file:** `agent.js`
 - **Model(s) / system(s) used:** Claude Code (Claude Opus 4.6)
-- **Short strategy summary:** Iterative-deepening negamax alpha-beta with capture-only quiescence, material + PST evaluation, MVV-LVA move ordering, soft/hard time control (150ms/600ms), and deterministic lexicographic UCI tie-break. No randomness, no external dependencies.
+- **Short strategy summary:** Iterative-deepening negamax alpha-beta with capture-only quiescence, material + PST evaluation, MVV-LVA move ordering, soft/hard time control (60ms/400ms), deterministic opening book (14 entries), and lexicographic UCI tie-break. No randomness, no external dependencies.
 
 ## Prompt log
 
@@ -25,6 +25,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 12. **Performance fix** — Removed expensive check detection from move ordering (was calling applyMove+isKingInCheck per quiet move). Tightened time controls to 80ms soft / 400ms hard. Opening position now ~200ms, midgame positions ~120ms.
 13. **Submission guardrail timing adjustment** — Committed and pushed immediately to avoid unsubmitted local drift. Set soft/hard controls to 150ms / 600ms for safer headroom under the 1000ms hard cap.
 14. **Deterministic opening book** — 14-entry hardcoded book keyed by FEN core (placement/side/castling/ep). Covers d4/e4/c4/Nf3 openings through ~3 moves. Validated against legal moves before use; falls back to search if missing/illegal.
+15. **Timing headroom fix** — Tightened to 60ms soft / 400ms hard after audit showed 269-338ms peaks on non-book positions. Now all positions under 175ms. File size metadata updated.
 
 ## Tools used
 
@@ -36,7 +37,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 | ripgrep (via Grep) | Banned-API scans (Math.random, child_process, worker_threads, eval, Function, fs.writeFile, external imports) |
 | git | Version control, commits and pushes at each milestone |
 | node (direct) | Determinism checks (5x and 10x same-FEN), legality sweep on 8 diverse FENs |
-| wc | File size verification (21,769 bytes) |
+| wc | File size verification (24,105 bytes) |
 | ls | Verify single executable source file at repo root |
 
 ## Rules compliance checklist
@@ -51,7 +52,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 | The agent does not use runtime downloads or self-modifying code | Yes |
 | The same FEN input always produces the same stdout output | Yes |
 | `npm test` passes locally for the included smoke tests | Yes |
-| The source file is under `1 MB` | Yes (21,770 bytes) |
+| The source file is under `1 MB` | Yes (24,105 bytes) |
 
 ## Cut decisions
 

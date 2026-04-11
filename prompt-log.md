@@ -245,3 +245,12 @@ Chronological record of all prompts/instructions given during development.
 > 10. Push: git push origin main.
 >
 > Return only: 5x test summary, determinism summaries (2 FENs, 10x each), changed files, commit SHA.
+
+## 15. Timing headroom fix (audit response)
+
+> Audit: 269-338ms peaks on non-book positions, still exceeding 250ms target.
+>
+> Fixes applied:
+> 1. SOFT_MS 150→60, HARD_MS 600→400.
+> 2. Updated file size in submission-report.md (21,770→24,105 bytes).
+> 3. Verified: midgame 116-141ms, castling 97ms, Sicilian 155ms, Italian 175ms — all under 250ms.

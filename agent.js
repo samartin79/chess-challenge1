@@ -439,8 +439,8 @@ function evaluate(pos) {
 }
 
 const MATE = 100000;
-const SOFT_MS = 150;
-const HARD_MS = 600;
+const SOFT_MS = 60;
+const HARD_MS = 400;
 const ABORT = Symbol('abort');
 
 // MVV-LVA move ordering. Captures scored by victim value - attacker/100.
