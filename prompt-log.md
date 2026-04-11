@@ -126,3 +126,22 @@ Chronological record of all prompts/instructions given during development.
 > 10. Commit: feat: add iterative deepening with soft/hard time control.
 >
 > Return only: test result, determinism result, changed files, commit SHA.
+
+## 8. Patch iterative deepening completion semantics
+
+> Work in /mnt/llmstore/comp/vibe-code-cup-challenge1 only.
+>
+> Patch iterative deepening completion semantics:
+>
+> 1. Edit only agent.js.
+> 2. Keep parser + legal move generator unchanged.
+> 3. In searchDepth, if ABORT occurs at any root move, return null (do not return partial depth result).
+> 4. In pickMove, update bestMove only when a depth fully completes (non-null result).
+> 5. Add hard-deadline guard before starting each new depth iteration.
+> 6. Preserve deterministic root ordering and tie-breaks.
+> 7. Run npm test; if failing, stop and fix.
+> 8. Run same-FEN determinism check x5.
+> 9. Update prompt/tool logs in prompt-log.md and submission-report.md.
+> 10. Commit: fix: keep only fully completed iterative depths on timeout.
+>
+> Return only: test result, determinism result, changed files, commit SHA.

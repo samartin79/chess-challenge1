@@ -466,15 +466,15 @@ function negamax(pos, depth, alpha, beta, ply, deadline) {
 }
 
 // Search one depth with full-window per root move. Moves are iterated in
-// lexicographic UCI order for determinism. Returns {move, score, uci} or
-// null if aborted before completing any move at this depth.
+// lexicographic UCI order for determinism. Returns {move, score, uci} only
+// when every root move completes; returns null on any ABORT.
 function searchDepth(pos, rootMoves, depth, deadline) {
   let bestScore = -Infinity;
   let bestUci = '';
   let bestMove = null;
   for (const { move, uci } of rootMoves) {
     const raw = negamax(applyMove(pos, move), depth - 1, -Infinity, Infinity, 1, deadline);
-    if (raw === ABORT) return bestMove ? { move: bestMove, score: bestScore, uci: bestUci } : null;
+    if (raw === ABORT) return null;
     const score = -raw;
     if (score > bestScore || (score === bestScore && uci < bestUci)) {
       bestScore = score;
@@ -502,6 +502,7 @@ function pickMove(pos) {
   const deadline = start + HARD_MS;
 
   for (let depth = 1; ; depth++) {
+    if (Date.now() >= deadline) break;
     const result = searchDepth(pos, rootMoves, depth, deadline);
     if (!result) break;
     bestMove = result.move;
