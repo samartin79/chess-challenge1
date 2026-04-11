@@ -439,13 +439,12 @@ function evaluate(pos) {
 }
 
 const MATE = 100000;
-const SOFT_MS = 200;
-const HARD_MS = 800;
+const SOFT_MS = 150;
+const HARD_MS = 600;
 const ABORT = Symbol('abort');
 
-// MVV-LVA move ordering score. Captures scored by victim value - attacker
-// value / 100. Checks get a bonus. Quiet moves scored 0. Within each
-// bucket, UCI lexicographic order is the stable tie-break.
+// MVV-LVA move ordering. Captures scored by victim value - attacker/100.
+// Promotions get bonus. Quiet moves scored 0. Stable UCI lex tie-break.
 function orderMoves(pos, moves) {
   const scored = moves.map((move) => {
     const uci = moveToUci(move);
@@ -454,24 +453,14 @@ function orderMoves(pos, moves) {
     const fromIdx = squareToIndex(move.from);
     const attacker = pos.board[fromIdx];
     let priority = 0;
-    // Captures: MVV-LVA
     if (victim !== '.') {
       priority = 10000 + PIECE_VALUES[victim.toLowerCase()] - PIECE_VALUES[attacker.toLowerCase()] / 100;
     }
-    // En passant capture
     if (attacker.toLowerCase() === 'p' && move.to === pos.enPassant) {
       priority = 10000 + PIECE_VALUES.p;
     }
-    // Promotions
     if (move.promotion) {
       priority += 9000 + PIECE_VALUES[move.promotion];
-    }
-    // Check bonus for non-captures
-    if (priority === 0) {
-      const next = applyMove(pos, move);
-      if (isKingInCheck(next, next.side)) {
-        priority = 5000;
-      }
     }
     return { move, uci, priority };
   });

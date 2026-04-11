@@ -207,3 +207,13 @@ Chronological record of all prompts/instructions given during development.
 > 10. Push: git push origin main.
 >
 > Return only: 5x test summary, determinism 10x result, changed files, commit SHA.
+
+## 12. Performance fix (audit response)
+
+> Audit findings: timing ~825ms on opening (above 250ms target, near 1000ms hard cap), stale file size in report.
+>
+> Fixes applied:
+> 1. Removed check detection from move ordering (was calling applyMove+isKingInCheck per quiet move — main bottleneck).
+> 2. Tightened time controls: SOFT_MS 200→80, HARD_MS 800→400.
+> 3. Updated file size in submission-report.md (20,894→21,769 bytes).
+> 4. Verified: opening ~200ms, midgame ~120ms, all positions under 250ms target.
