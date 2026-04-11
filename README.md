@@ -173,12 +173,29 @@ This repo includes a sample JavaScript agent, `agent.js`, that:
 
 That is the starting point challengers will fork and improve.
 
+## Local smoke tests
+
+Run the minimal participant test suite with:
+
+```bash
+npm test
+```
+
+The tests execute your root `agent.js` or `agent.ts` with representative FEN inputs and check that it prints one UCI-formatted move, never returns an illegal move for those positions, handles castling / promotion / en passant / check edge cases, and is deterministic for the same FEN. These are not exhaustive chess-engine tests, but they catch common submission mistakes before the tournament judge runs.
+
 ## Expected repo layout
 
 ```text
 agent.js or agent.ts
 submission-report.md
 README.md
+```
+
+Optional dev-only helper files in this starter repo:
+
+```text
+package.json
+test/agent.test.js
 ```
 
 No extra source files should be required by the judge. `submission-report.md` is mandatory documentation.

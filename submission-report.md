@@ -5,7 +5,7 @@ Use this file to document how your agent was built. This report is required for 
 ## Submission summary
 
 - **Participant / team name:** TODO
-- **Final source file:** `agent.js`
+- **Final source file:** TODO — `agent.js` or `agent.ts`
 - **Model(s) / system(s) used:** TODO
 - **Short strategy summary:** TODO
 
@@ -30,14 +30,15 @@ Answer each item with `Yes` or `No`.
 
 | Item | Yes / No |
 | --- | --- |
-| The submission has exactly one source file: `agent.js` | TODO |
+| The submission has exactly one source file: `agent.js` or `agent.ts` | TODO |
 | The agent uses only the Node.js standard library | TODO |
 | The agent does not use network access | TODO |
 | The agent does not read files outside the submission root | TODO |
 | The agent does not start background daemons, subprocesses, worker pools, or child processes | TODO |
 | The agent does not use runtime downloads or self-modifying code | TODO |
 | The same FEN input always produces the same stdout output | TODO |
-| The `agent.js` file is under `1 MB` | TODO |
+| `npm test` passes locally for the included smoke tests | TODO |
+| The source file is under `1 MB` | TODO |
 
 ## Additional notes
 
