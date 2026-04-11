@@ -25,7 +25,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 12. **Performance fix** — Removed expensive check detection from move ordering (was calling applyMove+isKingInCheck per quiet move). Tightened time controls to 80ms soft / 400ms hard. Opening position now ~200ms, midgame positions ~120ms.
 13. **Submission guardrail timing adjustment** — Committed and pushed immediately to avoid unsubmitted local drift. Set soft/hard controls to 150ms / 600ms for safer headroom under the 1000ms hard cap.
 14. **Deterministic opening book** — 14-entry hardcoded book keyed by FEN core (placement/side/castling/ep). Covers d4/e4/c4/Nf3 openings through ~3 moves. Validated against legal moves before use; falls back to search if missing/illegal.
-15. **Timing headroom fix** — Tightened to 60ms soft / 400ms hard after audit showed 269-338ms peaks on non-book positions. Now all positions under 175ms. File size metadata updated.
+15. **Timing headroom fix** — Tightened to 60ms soft / 400ms hard after audit showed 269-338ms peaks on non-book positions. Improved timing headroom; typical tested positions well below hard cap, though some complex positions may still exceed 250ms target. File size metadata updated.
 
 ## Tools used
 
