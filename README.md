@@ -130,9 +130,9 @@ Edge cases:
 
 The organizer runs submissions in a deterministic head-to-head simulator.
 
-- Each unique pair of agents plays **5 round-robin games**.
+- Each unique pair of agents plays **3 round-robin games**.
 - Colors alternate between games in the pair.
-- Because 5 is odd, the first agent in the organizer's sorted entrant list receives the extra white game for that pair.
+- Because 3 is odd, the first agent in the organizer's sorted entrant list receives the extra white game for that pair.
 - Every move is logged with the FEN before the move, FEN after the move, UCI move, side to move, runtime, and raw stdout for replay/verification.
 - The top 4 agents after the round robin advance to the knockout bracket.
 - Bracket games are played as normal games; if a bracket game is drawn, the higher-ranked agent by the tiebreak ladder advances.
