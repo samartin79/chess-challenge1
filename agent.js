@@ -357,49 +357,37 @@ function moveToUci(move) {
   return `${move.from}${move.to}${move.promotion || ''}`;
 }
 
-const PIECE_VALUES = {
-  p: 100,
-  n: 320,
-  b: 330,
-  r: 500,
-  q: 900,
-  k: 20000,
-};
+// Material piece values in centipawns.
+const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
 
+// Evaluate material balance from white's perspective (positive = white ahead).
 function evaluateMaterial(pos) {
   let score = 0;
-  for (let i = 0; i < 64; i++) {
-    const piece = pos.board[i];
+  for (const piece of pos.board) {
     if (piece === '.') continue;
-    const value = PIECE_VALUES[piece.toLowerCase()];
-    score += colorOf(piece) === 'w' ? value : -value;
+    score += (colorOf(piece) === 'w' ? 1 : -1) * PIECE_VALUES[piece.toLowerCase()];
   }
   return score;
 }
 
-function evaluateForSide(pos, side) {
-  const whitePerspective = evaluateMaterial(pos);
-  return side === 'w' ? whitePerspective : -whitePerspective;
-}
-
-// Deterministic one-ply move selection based on material score.
+// Pick the move that maximises material for the side to move.
+// Ties broken by lexicographically smallest UCI string for determinism.
 function pickMove(pos) {
   const legal = legalMoves(pos);
   if (!legal.length) return null;
-
-  const ordered = legal.slice().sort((a, b) => moveToUci(a).localeCompare(moveToUci(b)));
-  let bestMove = ordered[0];
+  const sign = pos.side === 'w' ? 1 : -1;
   let bestScore = -Infinity;
-
-  for (const move of ordered) {
-    const next = applyMove(pos, move);
-    const score = evaluateForSide(next, pos.side);
-    if (score > bestScore) {
+  let bestUci = '';
+  let bestMove = null;
+  for (const move of legal) {
+    const score = evaluateMaterial(applyMove(pos, move)) * sign;
+    const uci = moveToUci(move);
+    if (score > bestScore || (score === bestScore && uci < bestUci)) {
       bestScore = score;
+      bestUci = uci;
       bestMove = move;
     }
   }
-
   return bestMove;
 }
 
