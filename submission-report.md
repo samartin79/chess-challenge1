@@ -50,7 +50,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 | The agent does not use runtime downloads or self-modifying code | Yes |
 | The same FEN input always produces the same stdout output | Yes |
 | `npm test` passes locally for the included smoke tests | Yes |
-| The source file is under `1 MB` | Yes (21,769 bytes) |
+| The source file is under `1 MB` | Yes (21,770 bytes) |
 
 ## Cut decisions
 
