@@ -327,3 +327,8 @@ Chronological record of all prompts/instructions given during development.
 >   - Castling: 102/97/109
 > - Compliance: no banned APIs, no external imports
 > - Structure: agent.js only (27,277 bytes), submission-report.md present
+
+## 19. Closeout
+
+> Final closeout checklist (no code changes to engine logic).
+> Verified file-size metadata correct (27,277 bytes). Final npm test pass. Docs synced. No engine logic changed.
