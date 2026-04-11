@@ -168,3 +168,21 @@ Chronological record of all prompts/instructions given during development.
 > 10. Push: git push origin main.
 >
 > Return only: test result, determinism result, changed files, commit SHA.
+
+## 10. Hardening freeze
+
+> Work in /mnt/llmstore/comp/vibe-code-cup-challenge1 only.
+>
+> Hardening freeze (no new features):
+>
+> 1. Do not change search behavior except bug fixes.
+> 2. Run npm test 5 times in a row; all must pass.
+> 3. Determinism check: run same FEN 10 times and confirm identical output.
+> 4. Quick legality sanity sweep: run agent on diverse FENs (opening, castling, promotion, en passant, check, no-legal-move) and confirm valid UCI/0000 outputs.
+> 5. Compliance checks: only agent.js at root, size < 1MB, no banned APIs, no external imports.
+> 6. Update submission-report.md with complete logs and compliance checklist.
+> 7. Ensure prompt-log.md and submission-report.md are synchronized.
+> 8. Commit: chore: final hardening and submission report.
+> 9. Push: git push origin main.
+>
+> Return only: 5x test results summary, determinism 10x result, compliance check summary, changed files, commit SHA.
