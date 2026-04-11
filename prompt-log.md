@@ -77,3 +77,25 @@ Chronological record of all prompts/instructions given during development.
 > 11. Commit: feat: add deterministic alpha-beta search core.
 >
 > Return only: test result, determinism check result, changed files, commit SHA.
+
+## 6. Patch alpha-beta correctness
+
+> Patch alpha-beta correctness before iterative deepening.
+>
+> Work only in /mnt/llmstore/comp/vibe-code-cup-challenge1/agent.js.
+>
+> 1. Keep parser + legal move generator unchanged.
+> 2. Fix root search correctness:
+>    - Remove narrow-window call negamax(..., -Infinity, -bestScore) at root.
+>    - Use full-window search per root move (-Infinity, Infinity) so returned scores are exact for tie-break decisions.
+> 3. Fix mate-distance scoring for future iterative deepening:
+>    - Add ply parameter to negamax.
+>    - Terminal mate score must be -(MATE - ply).
+>    - Increment ply + 1 on recursion.
+> 4. Keep deterministic root tie-break by lexicographic UCI.
+> 5. Run npm test; if failing, stop and fix.
+> 6. Run determinism check on same FEN 5x.
+> 7. Update prompt/tool logs in prompt-log.md and submission-report.md.
+> 8. Commit message: fix: correct alpha-beta root scoring and mate ply handling.
+>
+> Return only: test result, determinism result, changed files, commit SHA.

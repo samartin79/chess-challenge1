@@ -439,28 +439,27 @@ function evaluate(pos) {
 }
 
 const MATE = 100000;
-const MAX_DEPTH = 4;
+const MAX_DEPTH = 3;
 
 // Negamax with alpha-beta pruning. Returns score from the perspective of
-// pos.side. At depth 0, returns static eval. Terminal nodes return mate
-// or stalemate scores.
-function negamax(pos, depth, alpha, beta) {
+// pos.side. ply tracks distance from root for mate-distance scoring.
+function negamax(pos, depth, alpha, beta, ply) {
   const legal = legalMoves(pos);
   if (!legal.length) {
-    return isKingInCheck(pos, pos.side) ? -(MATE - (MAX_DEPTH - depth)) : 0;
+    return isKingInCheck(pos, pos.side) ? -(MATE - ply) : 0;
   }
   if (depth <= 0) {
     return evaluate(pos) * (pos.side === 'w' ? 1 : -1);
   }
   for (const move of legal) {
-    const score = -negamax(applyMove(pos, move), depth - 1, -beta, -alpha);
+    const score = -negamax(applyMove(pos, move), depth - 1, -beta, -alpha, ply + 1);
     if (score >= beta) return beta;
     if (score > alpha) alpha = score;
   }
   return alpha;
 }
 
-// Root search: run negamax on each legal move and pick the best.
+// Root search: full-window negamax per move for exact scores.
 // Ties broken by lexicographically smallest UCI string for determinism.
 function pickMove(pos) {
   const legal = legalMoves(pos);
@@ -469,7 +468,7 @@ function pickMove(pos) {
   let bestUci = '';
   let bestMove = legal[0];
   for (const move of legal) {
-    const score = -negamax(applyMove(pos, move), MAX_DEPTH - 1, -Infinity, -bestScore);
+    const score = -negamax(applyMove(pos, move), MAX_DEPTH - 1, -Infinity, Infinity, 1);
     const uci = moveToUci(move);
     if (score > bestScore || (score === bestScore && uci < bestUci)) {
       bestScore = score;

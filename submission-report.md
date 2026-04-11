@@ -15,7 +15,8 @@ Chronological record of all prompts given during development. See also `prompt-l
 2. **Material evaluation** — Add deterministic material eval with specified piece values, lexicographic UCI tie-break. Keep parser/movegen intact.
 3. **Clean-up: stdin-only input rule and logging** — Remove `node:fs` import, switch to `process.stdin` for FEN input. Create prompt and tool logs. Run banned-API scan.
 4. **Piece-square tables** — Add static PST for all 6 piece types. Integrate as `score = material + PST`. Black mirrors via `index ^ 56` rank flip.
-5. **Alpha-beta search core** — Negamax with alpha-beta pruning, depth-limited (depth 4). Terminal: mate score `-MATE + ply`, stalemate `0`. Deterministic tie-break preserved. 5x determinism check passed.
+5. **Alpha-beta search core** — Negamax with alpha-beta pruning, depth-limited. Terminal: mate score `-MATE + ply`, stalemate `0`. Deterministic tie-break preserved. 5x determinism check passed.
+6. **Patch alpha-beta correctness** — Full-window root search for exact tie-break scores. Added `ply` param for mate-distance scoring. Reduced to depth 3 (full-window cost; iterative deepening will reclaim).
 
 ## Tools used
 
