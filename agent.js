@@ -439,11 +439,15 @@ function evaluate(pos) {
 }
 
 const MATE = 100000;
-const MAX_DEPTH = 3;
+const SOFT_MS = 200;
+const HARD_MS = 800;
+const ABORT = Symbol('abort');
 
 // Negamax with alpha-beta pruning. Returns score from the perspective of
 // pos.side. ply tracks distance from root for mate-distance scoring.
-function negamax(pos, depth, alpha, beta, ply) {
+// Returns ABORT if hard deadline is exceeded.
+function negamax(pos, depth, alpha, beta, ply, deadline) {
+  if (Date.now() >= deadline) return ABORT;
   const legal = legalMoves(pos);
   if (!legal.length) {
     return isKingInCheck(pos, pos.side) ? -(MATE - ply) : 0;
@@ -452,29 +456,56 @@ function negamax(pos, depth, alpha, beta, ply) {
     return evaluate(pos) * (pos.side === 'w' ? 1 : -1);
   }
   for (const move of legal) {
-    const score = -negamax(applyMove(pos, move), depth - 1, -beta, -alpha, ply + 1);
+    const raw = negamax(applyMove(pos, move), depth - 1, -beta, -alpha, ply + 1, deadline);
+    if (raw === ABORT) return ABORT;
+    const score = -raw;
     if (score >= beta) return beta;
     if (score > alpha) alpha = score;
   }
   return alpha;
 }
 
-// Root search: full-window negamax per move for exact scores.
-// Ties broken by lexicographically smallest UCI string for determinism.
-function pickMove(pos) {
-  const legal = legalMoves(pos);
-  if (!legal.length) return null;
+// Search one depth with full-window per root move. Moves are iterated in
+// lexicographic UCI order for determinism. Returns {move, score, uci} or
+// null if aborted before completing any move at this depth.
+function searchDepth(pos, rootMoves, depth, deadline) {
   let bestScore = -Infinity;
   let bestUci = '';
-  let bestMove = legal[0];
-  for (const move of legal) {
-    const score = -negamax(applyMove(pos, move), MAX_DEPTH - 1, -Infinity, Infinity, 1);
-    const uci = moveToUci(move);
+  let bestMove = null;
+  for (const { move, uci } of rootMoves) {
+    const raw = negamax(applyMove(pos, move), depth - 1, -Infinity, Infinity, 1, deadline);
+    if (raw === ABORT) return bestMove ? { move: bestMove, score: bestScore, uci: bestUci } : null;
+    const score = -raw;
     if (score > bestScore || (score === bestScore && uci < bestUci)) {
       bestScore = score;
       bestUci = uci;
       bestMove = move;
     }
+  }
+  return { move: bestMove, score: bestScore, uci: bestUci };
+}
+
+// Iterative deepening with soft/hard time control.
+function pickMove(pos) {
+  const legal = legalMoves(pos);
+  if (!legal.length) return null;
+
+  // Sort root moves lexicographically for deterministic iteration.
+  const rootMoves = legal
+    .map((m) => ({ move: m, uci: moveToUci(m) }))
+    .sort((a, b) => (a.uci < b.uci ? -1 : a.uci > b.uci ? 1 : 0));
+
+  // Deterministic fallback: lexicographically first legal move.
+  let bestMove = rootMoves[0].move;
+
+  const start = Date.now();
+  const deadline = start + HARD_MS;
+
+  for (let depth = 1; ; depth++) {
+    const result = searchDepth(pos, rootMoves, depth, deadline);
+    if (!result) break;
+    bestMove = result.move;
+    if (Date.now() - start >= SOFT_MS) break;
   }
   return bestMove;
 }

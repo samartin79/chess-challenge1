@@ -5,7 +5,7 @@
 - **Participant / team name:** samartin79
 - **Final source file:** `agent.js`
 - **Model(s) / system(s) used:** Claude Code (Claude Opus 4.6)
-- **Short strategy summary:** Negamax alpha-beta search (depth 4) with material + PST evaluation and lexicographic UCI tie-break. No randomness.
+- **Short strategy summary:** Iterative-deepening negamax alpha-beta with material + PST evaluation, soft/hard time control (200ms/800ms), and lexicographic UCI tie-break. No randomness.
 
 ## Prompt log
 
@@ -17,6 +17,7 @@ Chronological record of all prompts given during development. See also `prompt-l
 4. **Piece-square tables** — Add static PST for all 6 piece types. Integrate as `score = material + PST`. Black mirrors via `index ^ 56` rank flip.
 5. **Alpha-beta search core** — Negamax with alpha-beta pruning, depth-limited. Terminal: mate score `-MATE + ply`, stalemate `0`. Deterministic tie-break preserved. 5x determinism check passed.
 6. **Patch alpha-beta correctness** — Full-window root search for exact tie-break scores. Added `ply` param for mate-distance scoring. Reduced to depth 3 (full-window cost; iterative deepening will reclaim).
+7. **Iterative deepening + time management** — Deepens from 1 while time allows. Soft 200ms / hard 800ms. Abort sentinel propagates cleanly. Lexicographic root move order for determinism. Legal fallback if no depth completes.
 
 ## Tools used
 

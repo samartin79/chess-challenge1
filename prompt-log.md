@@ -99,3 +99,30 @@ Chronological record of all prompts/instructions given during development.
 > 8. Commit message: fix: correct alpha-beta root scoring and mate ply handling.
 >
 > Return only: test result, determinism result, changed files, commit SHA.
+
+## 7. Iterative deepening + time management
+
+> Work in /mnt/llmstore/comp/vibe-code-cup-challenge1 only.
+>
+> Milestone: iterative deepening + time management
+>
+> 1. Edit only agent.js.
+> 2. Keep parser + legal move generator unchanged.
+> 3. Add iterative deepening at root:
+>    - start depth at 1 and increase while time allows.
+>    - soft target: 200ms, hard cutoff: 800ms using Date.now().
+>    - always keep the best fully-completed depth result.
+> 4. Add timeout safety in search:
+>    - pass a context with hardDeadlineMs.
+>    - if hard deadline is exceeded during search, abort current depth and return last completed depth move.
+> 5. Preserve deterministic behavior:
+>    - deterministic root move iteration order (lexicographic UCI).
+>    - deterministic tie-break unchanged.
+> 6. Guarantee legal fallback:
+>    - if interrupted/timeout before any completed depth, return a deterministic legal fallback move.
+> 7. Run npm test; if failing, stop and fix first.
+> 8. Run determinism check on same FEN 5x.
+> 9. Update prompt-log.md and submission-report.md with this prompt + tool usage.
+> 10. Commit: feat: add iterative deepening with soft/hard time control.
+>
+> Return only: test result, determinism result, changed files, commit SHA.
