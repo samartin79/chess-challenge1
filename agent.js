@@ -543,10 +543,67 @@ function searchDepth(pos, rootMoves, depth, deadline) {
   return { move: bestMove, score: bestScore, uci: bestUci };
 }
 
+// Small deterministic opening book. Key = placement/side/castling/ep.
+function bookKey(pos) {
+  const placement = [];
+  for (let r = 0; r < 8; r++) {
+    let empty = 0;
+    for (let c = 0; c < 8; c++) {
+      const p = pos.board[r * 8 + c];
+      if (p === '.') { empty++; } else {
+        if (empty) { placement.push(empty); empty = 0; }
+        placement.push(p);
+      }
+    }
+    if (empty) placement.push(empty);
+    if (r < 7) placement.push('/');
+  }
+  return `${placement.join('')} ${pos.side} ${pos.castling} ${pos.enPassant}`;
+}
+
+const BOOK = new Map([
+  // Starting position → 1.d4 (strong and common)
+  ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -', 'd2d4'],
+  // 1.d4 → d5 (solid reply)
+  ['rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -', 'd7d5'],
+  // 1.d4 Nf6 → c4 (English/Indian systems)
+  ['rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -', 'c2c4'],
+  // 1.e4 → e5 (open game)
+  ['rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -', 'e7e5'],
+  // 1.e4 e5 → Nf3 (king's knight)
+  ['rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -', 'g1f3'],
+  // 1.e4 e5 2.Nf3 → Nc6 (classical defense)
+  ['rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -', 'b8c6'],
+  // 1.e4 e5 2.Nf3 Nc6 → Bb5 (Ruy Lopez)
+  ['r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -', 'f1b5'],
+  // 1.d4 d5 → c4 (Queen's Gambit)
+  ['rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -', 'c2c4'],
+  // 1.d4 d5 2.c4 → e6 (QGD)
+  ['rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq -', 'e7e6'],
+  // 1.d4 d5 2.c4 e6 → Nc3 (main line)
+  ['rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -', 'b1c3'],
+  // 1.c4 → e5 (English reversed Sicilian)
+  ['rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -', 'e7e5'],
+  // 1.Nf3 → d5 (solid reply)
+  ['rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -', 'd7d5'],
+  // Italian: 1.e4 e5 2.Nf3 Nc6 3.Bc4 → Bc5
+  ['r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq -', 'f8c5'],
+  // Ruy Lopez: 3.Bb5 → a6
+  ['r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -', 'a7a6'],
+]);
+
 // Iterative deepening with soft/hard time control.
 function pickMove(pos) {
   const legal = legalMoves(pos);
   if (!legal.length) return null;
+
+  // Opening book lookup.
+  const bk = bookKey(pos);
+  const bookUci = BOOK.get(bk);
+  if (bookUci) {
+    const bookMove = legal.find((m) => moveToUci(m) === bookUci);
+    if (bookMove) return bookMove;
+  }
 
   // Order root moves: captures (MVV-LVA), checks, quiet; UCI lex tie-break.
   const rootMoves = orderMoves(pos, legal);

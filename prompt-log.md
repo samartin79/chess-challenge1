@@ -226,3 +226,22 @@ Chronological record of all prompts/instructions given during development.
 >    Reduce soft target from 200ms to 150ms and hard cutoff from 800ms to 600ms.
 >    Trade one ply of depth for never timing out.
 >    Fix timing FIRST, then commit, then push, then update report metadata.
+
+## 14. Deterministic opening book
+
+> Work in /mnt/llmstore/comp/vibe-code-cup-challenge1 only.
+>
+> Milestone: tiny deterministic opening book (low risk)
+>
+> 1. Edit only agent.js (and logs/report files).
+> 2. Add a small hardcoded opening book map (8-20 entries max), keyed by normalized FEN core (placement + side + castling + en-passant).
+> 3. In pickMove, before search: compute key, if key exists validate move against legal moves, if legal play it immediately, else fall back to iterative deepening.
+> 4. Keep determinism strict: no randomness, map lookup + legal validation always yields same output for same FEN.
+> 5. Do not change move generator, quiescence, or time controls (150/600 stays).
+> 6. Run npm test 5x.
+> 7. Run determinism check 10x on start FEN and one booked reply FEN.
+> 8. Update prompt-log.md and submission-report.md.
+> 9. Commit: feat: add deterministic opening book fallback.
+> 10. Push: git push origin main.
+>
+> Return only: 5x test summary, determinism summaries (2 FENs, 10x each), changed files, commit SHA.

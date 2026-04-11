@@ -24,6 +24,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 11. **Quiescence search** — Capture-only quiescence at leaf nodes. Stand-pat eval, alpha/beta pruning, en passant captures included. MVV-LVA ordering with stable UCI tie-break. ABORT propagation preserved.
 12. **Performance fix** — Removed expensive check detection from move ordering (was calling applyMove+isKingInCheck per quiet move). Tightened time controls to 80ms soft / 400ms hard. Opening position now ~200ms, midgame positions ~120ms.
 13. **Submission guardrail timing adjustment** — Committed and pushed immediately to avoid unsubmitted local drift. Set soft/hard controls to 150ms / 600ms for safer headroom under the 1000ms hard cap.
+14. **Deterministic opening book** — 14-entry hardcoded book keyed by FEN core (placement/side/castling/ep). Covers d4/e4/c4/Nf3 openings through ~3 moves. Validated against legal moves before use; falls back to search if missing/illegal.
 
 ## Tools used
 
@@ -55,7 +56,7 @@ Chronological record of all prompts given during development. See `prompt-log.md
 ## Cut decisions
 
 - **Quiescence search** — implemented (capture-only).
-- **Opening book** — skipped; deterministic hash-based or hardcoded openings considered but not needed for core strength.
+- **Opening book** — implemented (14-entry hardcoded map, d4/e4/c4/Nf3 lines through ~3 moves).
 - **Transposition table** — skipped; would speed search but adds memory management complexity.
 - **Killer/history heuristics** — skipped; MVV-LVA ordering provides sufficient pruning improvement.
 - **Endgame-specific PST** — skipped; single PST set used for all phases.
