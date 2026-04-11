@@ -19,6 +19,7 @@ Chronological record of all prompts given during development. See also `prompt-l
 6. **Patch alpha-beta correctness** — Full-window root search for exact tie-break scores. Added `ply` param for mate-distance scoring. Reduced to depth 3 (full-window cost; iterative deepening will reclaim).
 7. **Iterative deepening + time management** — Deepens from 1 while time allows. Soft 200ms / hard 800ms. Abort sentinel propagates cleanly. Lexicographic root move order for determinism. Legal fallback if no depth completes.
 8. **Patch iterative deepening completion semantics** — ABORT at any root move discards entire depth (no partial results). Hard-deadline guard before starting each new depth. Only fully completed depths update bestMove.
+9. **Deterministic move ordering** — MVV-LVA captures first, then checks, then quiet moves. Stable UCI lex tie-break within each bucket. Applied at both root and recursive levels.
 
 ## Tools used
 

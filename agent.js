@@ -443,6 +443,42 @@ const SOFT_MS = 200;
 const HARD_MS = 800;
 const ABORT = Symbol('abort');
 
+// MVV-LVA move ordering score. Captures scored by victim value - attacker
+// value / 100. Checks get a bonus. Quiet moves scored 0. Within each
+// bucket, UCI lexicographic order is the stable tie-break.
+function orderMoves(pos, moves) {
+  const scored = moves.map((move) => {
+    const uci = moveToUci(move);
+    const toIdx = squareToIndex(move.to);
+    const victim = pos.board[toIdx];
+    const fromIdx = squareToIndex(move.from);
+    const attacker = pos.board[fromIdx];
+    let priority = 0;
+    // Captures: MVV-LVA
+    if (victim !== '.') {
+      priority = 10000 + PIECE_VALUES[victim.toLowerCase()] - PIECE_VALUES[attacker.toLowerCase()] / 100;
+    }
+    // En passant capture
+    if (attacker.toLowerCase() === 'p' && move.to === pos.enPassant) {
+      priority = 10000 + PIECE_VALUES.p;
+    }
+    // Promotions
+    if (move.promotion) {
+      priority += 9000 + PIECE_VALUES[move.promotion];
+    }
+    // Check bonus for non-captures
+    if (priority === 0) {
+      const next = applyMove(pos, move);
+      if (isKingInCheck(next, next.side)) {
+        priority = 5000;
+      }
+    }
+    return { move, uci, priority };
+  });
+  scored.sort((a, b) => b.priority - a.priority || (a.uci < b.uci ? -1 : a.uci > b.uci ? 1 : 0));
+  return scored;
+}
+
 // Negamax with alpha-beta pruning. Returns score from the perspective of
 // pos.side. ply tracks distance from root for mate-distance scoring.
 // Returns ABORT if hard deadline is exceeded.
@@ -455,7 +491,8 @@ function negamax(pos, depth, alpha, beta, ply, deadline) {
   if (depth <= 0) {
     return evaluate(pos) * (pos.side === 'w' ? 1 : -1);
   }
-  for (const move of legal) {
+  const ordered = orderMoves(pos, legal);
+  for (const { move } of ordered) {
     const raw = negamax(applyMove(pos, move), depth - 1, -beta, -alpha, ply + 1, deadline);
     if (raw === ABORT) return ABORT;
     const score = -raw;
@@ -490,12 +527,10 @@ function pickMove(pos) {
   const legal = legalMoves(pos);
   if (!legal.length) return null;
 
-  // Sort root moves lexicographically for deterministic iteration.
-  const rootMoves = legal
-    .map((m) => ({ move: m, uci: moveToUci(m) }))
-    .sort((a, b) => (a.uci < b.uci ? -1 : a.uci > b.uci ? 1 : 0));
+  // Order root moves: captures (MVV-LVA), checks, quiet; UCI lex tie-break.
+  const rootMoves = orderMoves(pos, legal);
 
-  // Deterministic fallback: lexicographically first legal move.
+  // Deterministic fallback: first move in ordered list.
   let bestMove = rootMoves[0].move;
 
   const start = Date.now();

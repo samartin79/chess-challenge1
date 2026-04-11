@@ -145,3 +145,26 @@ Chronological record of all prompts/instructions given during development.
 > 10. Commit: fix: keep only fully completed iterative depths on timeout.
 >
 > Return only: test result, determinism result, changed files, commit SHA.
+
+## 9. Deterministic move ordering
+
+> Work in /mnt/llmstore/comp/vibe-code-cup-challenge1 only.
+>
+> Milestone: deterministic move ordering
+>
+> 1. Edit only agent.js.
+> 2. Keep parser + legal move generator unchanged.
+> 3. Add deterministic move ordering for search:
+>    - captures first (MVV-LVA)
+>    - then checking moves
+>    - then quiet moves
+>    - stable UCI lexicographic tie-break inside each bucket
+> 4. Apply ordering in both root move iteration and recursive negamax.
+> 5. Preserve timeout behavior and full-depth-only iterative deepening semantics.
+> 6. Run npm test; if failing, stop and fix.
+> 7. Run same-FEN determinism check x5.
+> 8. Update prompt-log.md and submission-report.md with prompt + tool usage.
+> 9. Commit: feat: add deterministic move ordering for alpha-beta.
+> 10. Push: git push origin main.
+>
+> Return only: test result, determinism result, changed files, commit SHA.
