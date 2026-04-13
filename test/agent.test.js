@@ -81,6 +81,29 @@ function loadMakeMove() {
   return sandbox.makeMove;
 }
 
+function loadWorkerMakeMove() {
+  const source = readFileSync(agentPath, 'utf8');
+  const sandbox = {
+    console: { log() {}, error() {}, warn() {} },
+    Date,
+  };
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  const body = `"use strict";\n${source}\nif (typeof makeMove !== 'function') throw new Error('makeMove function not found');\nreturn makeMove(board, timeRemaining, reportMove, getMemory, stockfishMove);`;
+  sandbox.workerRunner = vm.runInContext(
+    `new Function('board', 'timeRemaining', 'reportMove', 'getMemory', 'stockfishMove', ${JSON.stringify(body)})`,
+    sandbox,
+    { filename: agentPath },
+  );
+  return (board, timeRemaining, reportMove) => sandbox.workerRunner(
+    board,
+    timeRemaining,
+    reportMove,
+    () => ({ heapUsed: 0, heapTotal: 0 }),
+    undefined,
+  );
+}
+
 function uciToMove(uci) {
   const move = {
     from: uci.slice(0, 2),
@@ -136,6 +159,7 @@ for (const testCase of cases) {
 assert.equal(runAgent(cases[0].fen), runAgent(cases[0].fen), 'Agent must be deterministic for the same FEN');
 
 const makeMove = loadMakeMove();
+const workerMakeMove = loadWorkerMakeMove();
 
 for (const testCase of cases) {
   const reported = runArenaAgent(makeMove, testCase);
@@ -152,6 +176,23 @@ assert.deepEqual(
   runArenaAgent(makeMove, cases[0]),
   runArenaAgent(makeMove, cases[0]),
   'makeMove path must be deterministic for the same FEN',
+);
+
+for (const testCase of cases) {
+  const reported = runArenaAgent(workerMakeMove, testCase);
+  if (testCase.legal.length === 0) {
+    assert.equal(reported.length, 0, `${testCase.name}: expected no worker-reported moves when no legal moves exist`);
+  } else {
+    assert.ok(reported.length >= 1, `${testCase.name}: expected strict worker path to report a fallback move`);
+    assert.ok(testCase.legal.includes(reported[0]), `${testCase.name}: illegal worker fallback move ${reported[0]}`);
+    assert.ok(testCase.legal.includes(reported.at(-1)), `${testCase.name}: illegal worker final move ${reported.at(-1)}`);
+  }
+}
+
+assert.deepEqual(
+  runArenaAgent(workerMakeMove, cases[0]),
+  runArenaAgent(workerMakeMove, cases[0]),
+  'strict worker path must be deterministic for the same FEN',
 );
 
 console.log('agent smoke tests ok');
