@@ -453,9 +453,8 @@ function evaluate(pos) {
 const MATE = 100000;
 const ABORT = Symbol('abort');
 const LOCAL_TIMING = { softMs: 60, hardMs: 400 };
-const ARENA_BUFFER_MS = 1200;
-const ARENA_FLOOR_MS = 250;
-const ARENA_HARD_CAP_MS = 18000;
+const ARENA_BUFFER_MS = 1500;
+const ARENA_FLOOR_MS = 200;
 
 // Transposition table: bounded, deterministic, depth-preferred replace.
 const TT_MAX = 50000;
@@ -716,9 +715,11 @@ function pickMove(pos, timing = LOCAL_TIMING) {
   const hardMs = timing.hardMs;
   const softMs = timing.softMs;
   const deadline = start + hardMs;
+  let lastIterMs = 0;
 
   for (let depth = 1; ; depth++) {
-    if (Date.now() >= deadline) break;
+    const elapsed = Date.now() - start;
+    if (elapsed >= deadline - start || elapsed >= softMs || (lastIterMs && elapsed + lastIterMs * 2 >= softMs)) break;
     // PV-first: move previous depth's best to front of root list.
     if (pvUci) {
       const pvIdx = rootMoves.findIndex((m) => m.uci === pvUci);
@@ -727,11 +728,12 @@ function pickMove(pos, timing = LOCAL_TIMING) {
         rootMoves.unshift(pv);
       }
     }
+    const iterStart = Date.now();
     const result = searchDepth(pos, rootMoves, depth, deadline, killerTable);
     if (!result) break;
     bestMove = result.move;
     pvUci = result.uci;
-    if (Date.now() - start >= softMs) break;
+    lastIterMs = Date.now() - iterStart;
   }
   return bestMove;
 }
@@ -739,11 +741,13 @@ function pickMove(pos, timing = LOCAL_TIMING) {
 function arenaTiming(timeRemaining, legalCount) {
   const raw = Number.isFinite(timeRemaining) ? timeRemaining : 20000;
   const available = raw > ARENA_BUFFER_MS ? raw - ARENA_BUFFER_MS : Math.floor(raw * 0.6);
-  const hardMs = Math.max(ARENA_FLOOR_MS, Math.min(ARENA_HARD_CAP_MS, available));
-  let softRatio = 0.68;
-  if (legalCount <= 4) softRatio = 0.45;
-  else if (legalCount <= 10) softRatio = 0.58;
-  else if (legalCount >= 28) softRatio = 0.8;
+  const hardCap = legalCount >= 28 ? 9000 : legalCount >= 20 ? 11000 : 12000;
+  const hardMs = Math.max(ARENA_FLOOR_MS, Math.min(hardCap, available));
+  let softRatio = 0.48;
+  if (legalCount <= 4) softRatio = 0.32;
+  else if (legalCount <= 10) softRatio = 0.4;
+  else if (legalCount >= 28) softRatio = 0.62;
+  else if (legalCount >= 20) softRatio = 0.56;
   const softMs = Math.max(ARENA_FLOOR_MS, Math.min(hardMs - 75, Math.floor(hardMs * softRatio)));
   return { softMs, hardMs };
 }
